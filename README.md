@@ -90,13 +90,13 @@ python -m pip install pandas numpy matplotlib scikit-learn openpyxl jupyter
 
 ## How to run
 
-1. Put `Customer_Churn_Analysis_Improved.ipynb` and `Online Retail.xlsx` in the same folder.
+1. Put `Customer_Churn_Analysis.ipynb` and `Online Retail.xlsx` in the same folder.
 2. Install the dependencies.
 3. Open the notebook in Jupyter Notebook, JupyterLab, or VS Code.
 4. Run the notebook from top to bottom.
 5. Review the metrics and exported workbooks.
 
-The notebook writes `customer_churn_analysis_results.xlsx` and `high_priority_at_risk_customers_improved.xlsx` to its current working directory.
+The notebook writes `customer_churn_analysis_results.xlsx` and `high_priority_at_risk_customers.xlsx` to its current working directory.
 
 ## Charts
 
