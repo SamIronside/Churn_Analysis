@@ -1,79 +1,88 @@
-# Customer Churn Analysis
+# Customer Behaviour & 90-Day Churn-Risk Analysis
 
-An exploratory retail analytics project that uses customer-level purchasing behaviour to identify customers who may be at risk of churning. The notebook combines sales analysis, RFM-style customer summaries, and a Random Forest classifier to produce a prioritised customer list.
+**Author:** Sam Norouzi
 
-## Project contents
+This project analyses the UCI-style Online Retail transaction dataset to understand sales and customer behaviour, build customer-level RFM features, and test whether historical purchasing patterns help identify customers who make no purchase in the following 90 days.
 
-- `MainAnalysis.ipynb` — data cleaning, exploratory analysis, customer feature engineering, churn modelling, visualisations, and export.
-- `Online Retail.xlsx` — transaction-level retail data used by the notebook.
-- `high_priority_at_risk_customers.xlsx` — an example/exported list of customers flagged for review by the analysis.
-- `README.md` — project overview and instructions.
+## Overall Structure
 
-> Keep the dataset and notebook in the same directory, or update the input path in the notebook to match your setup.
+The project is organised into the following sections:
 
-## Goals
+1. **Data Preparation** — Cleaning the transaction dataset and preparing it for analysis.
+2. **Exploratory Data Analysis** — Exploring sales trends by month, product, customer, country, hour, and weekday.
+3. **Customer RFM Analysis** — Calculating Recency, Frequency, and Monetary features to understand customer purchasing behaviour.
+4. **90-Day Churn-Risk Analysis** — Defining a forward-looking target based on customer inactivity during the 90 days following historical snapshot dates.
+5. **Model Development** — Training and comparing Logistic Regression, Random Forest, and a majority-class baseline.
+6. **Model Evaluation** — Evaluating model performance using chronological holdout testing and multiple classification metrics.
+7. **Customer Risk Ranking** — Identifying active customers who may be at risk of churn.
+8. **Results and Visualisation** — Presenting findings through charts, evaluation metrics, summary tables, and exported Excel workbooks.
 
-- Explore sales patterns by time, country, customer, and product.
-- Summarise customer behaviour using recency, frequency, and monetary value.
-- Define a simple churn label based on customer inactivity.
-- Train a Random Forest classifier and estimate churn risk.
-- Export a list of higher-priority customers for retention follow-up.
+## Project files
 
-## Data
+- `Customer_Churn_Analysis.ipynb` — End-to-end notebook with exploratory analysis, RFM summaries, forward-looking 90-day labels, time-based model evaluation, and customer risk ranking.
+- `assets/charts/` — PNG charts generated automatically when the notebook runs; these are embedded below.
+- `Online Retail.xlsx` — source transaction workbook.
+- `customer_churn_analysis_results.xlsx` — exported RFM summary, snapshot outcome rates, model metrics, priority customers, and data-quality report.
+- `high_priority_at_risk_customers_improved.xlsx` — up to 50 currently active customers ranked by the model's risk score.
 
-The workbook contains transaction-level fields including:
+Keep the notebook and source workbook in the same directory, or update `DATA_PATH` near the beginning of the notebook.
 
-| Column | Description |
-| --- | --- |
-| `InvoiceNo` | Invoice identifier; invoices beginning with `C` are excluded as cancellations/returns in the notebook. |
-| `StockCode` | Product code. |
-| `Description` | Product description. |
-| `Quantity` | Number of units on the transaction line. |
-| `InvoiceDate` | Date and time of the transaction. |
-| `UnitPrice` | Unit price. |
-| `CustomerID` | Customer identifier. |
-| `Country` | Customer's country. |
+## Questions explored
 
-The notebook removes rows with missing values and calculates line-level sales as `Quantity × UnitPrice`. Customer summaries are built from the remaining transaction records.
+1. How do sales vary by month, product, customer, country, hour, and weekday?
+2. What does customer recency, distinct-invoice frequency, and monetary value reveal?
+3. Can behaviour observed before a snapshot date help identify customers with no purchase in the next 90 days?
+4. Which customers active near the end of the observed period should be reviewed first for retention outreach?
 
-## Method
+## Methodology
 
-### 1. Data preparation and exploration
+### Data preparation
 
-The notebook cleans missing values, excludes invoice numbers beginning with `C`, converts invoice dates to datetime, and calculates sales. It explores revenue over time, top customers and products, sales by country, and purchasing patterns by hour and weekday.
+The notebook reports row counts after each cleaning step. It removes exact duplicate rows, rows missing required fields, cancellation invoices (invoice numbers beginning with `C`), and rows with non-positive quantity or unit price. Sales value is calculated as `Quantity × UnitPrice`.
 
-### 2. Customer features
+### Exploratory analysis and RFM
 
-For each customer, the notebook calculates:
+Charts and summary tables cover monthly sales, top customers, top products, country sales, and sales by invoice hour and weekday. Customer-level features include:
 
-- **Recency** — days since their most recent purchase, measured relative to one day after the latest invoice date in the dataset.
-- **Frequency** — count of transaction rows for the customer (not necessarily the count of distinct orders).
-- **Monetary** — total calculated sales for the customer.
-- **Average order value** — calculated in the notebook as monetary value divided by frequency. Since frequency is a transaction-row count, this is an average value per transaction row rather than a true order-level average.
+- **Recency:** days since last purchase at the analysis reference date.
+- **Frequency:** number of distinct invoices, rather than product-line rows.
+- **Monetary:** total recorded sales value.
+- **Average order value:** monetary value divided by distinct invoices.
+- **Tenure:** days between the first purchase and the reference date.
+- **Product variety:** number of distinct stock codes purchased.
 
-### 3. Churn definition and model
+The currency is labelled “dataset currency” because the workbook does not provide a dedicated currency column.
 
-The notebook labels a customer as `Churned = 1` when recency is greater than 90 days; otherwise, `Churned = 0`. A Random Forest classifier is trained using `frequency`, `monetary`, and `AvgOrderValue`, and its predicted class-1 probability is saved as `churn_probability`.
+### Forward-looking target
 
-The notebook's saved run reports **69% accuracy** for the Random Forest on its test split. This is an initial result, not evidence that the model is production-ready. The saved classification report shows weaker recall for the churn class (0.39), so some churn-labelled customers may be missed.
+The predictive task is defined as **no recorded purchase during the 90 days following a historical snapshot date**. Features are computed using transactions before the snapshot date; the label is based on the subsequent 90-day window. The notebook uses multiple monthly snapshots from March to September 2011 and holds later snapshots out for testing.
 
-### 4. Priority customer export
+This is more appropriate than defining a label from end-of-dataset recency and then training a model to reproduce that same label. However, 90-day inactivity is still a proxy outcome: a customer may return after the window.
 
-The notebook selects customers whose predicted churn probability is greater than 0.5 and whose rule-based label is `Churned = 0`, then sorts them by predicted risk and exports up to 50 rows to `high_priority_at_risk_customers.xlsx`.
+### Models and evaluation
 
-The export is intended as a review list for possible retention outreach, not as a definitive prediction of future behaviour.
+The notebook compares:
+- A majority-class baseline.
+- Logistic Regression with imputation and scaling fitted inside a pipeline.
+- Random Forest.
+
+Evaluation uses a chronological holdout and reports accuracy, churn-class precision, recall, F1, ROC-AUC, and average precision. The model is not considered production-ready; results should be interpreted in the context of the short historical dataset and the chosen 90-day definition.
+
+### Current run: headline results
+
+The executed notebook produced the following chronological holdout metrics:
+
+| Model | Accuracy | Churn precision | Churn recall | Churn F1 | ROC-AUC | Average precision |
+|---|---:|---:|---:|---:|---:|---:|
+| Random Forest | 0.687 | 0.650 | 0.735 | 0.690 | 0.755 | 0.692 |
+| Logistic Regression | 0.689 | 0.654 | 0.729 | 0.689 | 0.749 | 0.679 |
+| Majority-class baseline | 0.527 | 0.000 | 0.000 | 0.000 | 0.500 | 0.473 |
+
+These are results from this particular historical split, not a guarantee of future performance. The two trained models perform similarly, so the Random Forest should not automatically be treated as the winner merely because it is more complex.
 
 ## Requirements
 
-The notebook uses Python and the following packages:
-
-- `pandas`
-- `numpy`
-- `matplotlib`
-- `scikit-learn`
-- `openpyxl` (for Excel file input/output)
-
-Install dependencies with:
+Install the Python packages with:
 
 ```bash
 python -m pip install pandas numpy matplotlib scikit-learn openpyxl jupyter
@@ -81,34 +90,42 @@ python -m pip install pandas numpy matplotlib scikit-learn openpyxl jupyter
 
 ## How to run
 
-1. Download or clone the project files.
-2. Place the notebook and `Online Retail(1).xlsx` in the same directory.
-3. Install the dependencies listed above.
-4. Open `MainAnalysis(1).ipynb` in Jupyter Notebook, JupyterLab, or VS Code.
-5. Run the notebook cells from top to bottom.
-6. Check the generated charts and metrics, then review `high_priority_at_risk_customers.xlsx` in the working directory.
+1. Put `Customer_Churn_Analysis_Improved.ipynb` and `Online Retail(1).xlsx` in the same folder.
+2. Install the dependencies.
+3. Open the notebook in Jupyter Notebook, JupyterLab, or VS Code.
+4. Run the notebook from top to bottom.
+5. Review the metrics and exported workbooks.
 
-If your dataset has a different filename, edit the `pd.read_excel(...)` path near the beginning of the notebook. The output workbook is written to the notebook's current working directory.
+The notebook writes `customer_churn_analysis_results.xlsx` and `high_priority_at_risk_customers_improved.xlsx` to its current working directory.
 
-## Important limitations and next steps
+## Charts
 
-- **The churn label is a heuristic.** Inactivity for more than 90 days is used as a proxy for churn; it is not a confirmed business outcome.
-- **The features and label need further validation.** The label is defined from recency, while the model uses purchasing-value features that may only indirectly reflect inactivity. Consider including recency in a clearly designed baseline, using a time-based train/test split, and evaluating performance against a future observation window.
-- **Check the modelling code before relying on results.** In the current notebook, the Logistic Regression model is fitted on unscaled training data but predicts on scaled test data. Its reported metric should not be treated as reliable until this is corrected. The Random Forest is trained and tested on the unscaled features.
-- **Avoid interpreting probabilities as calibrated probabilities.** The output is a model score and has not been shown to be calibrated.
-- **Validate the customer list.** Review the selected customers and thresholds with business stakeholders before using the list for campaigns.
-- **Currency and data provenance.** The notebook labels sales axes as dollars, but the workbook itself does not establish a currency in the columns shown. Confirm the source dataset's currency before reporting financial totals.
+The notebook saves every figure to `assets/charts/` using relative paths, so the charts can be reused in this README and viewed directly in GitHub. Run the notebook from the project root to refresh them.
 
-## Output fields
+### Monthly sales
 
-The exported customer list includes:
+![Monthly sales value](assets/charts/monthly_sales.png)
 
-- `CustomerID`
-- `recency`
-- `frequency`
-- `monetary`
-- `Churned`
-- `AvgOrderValue`
-- `churn_probability`
+### Top customers by recorded sales
 
+![Top 10 customers by recorded sales](assets/charts/top_customers.png)
 
+### Top products by recorded sales
+
+![Top 10 product descriptions by recorded sales](assets/charts/top_products.png)
+
+### Sales by invoice hour and weekday
+
+![Sales by invoice hour and weekday](assets/charts/sales_by_hour_and_weekday.png)
+
+### Customer RFM distributions
+
+![Customer recency, frequency, and monetary value distributions](assets/charts/rfm_distributions.png)
+
+### Model confusion matrix
+
+![Random Forest temporal holdout confusion matrix](assets/charts/confusion_matrix.png)
+
+### Random Forest feature importance
+
+![Random Forest feature importance](assets/charts/random_forest_feature_importance.png)
