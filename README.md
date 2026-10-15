@@ -23,7 +23,7 @@ The project is organised into the following sections:
 - `assets/charts/` — PNG charts generated automatically when the notebook runs; these are embedded below.
 - `Online Retail.xlsx` — source transaction workbook.
 - `customer_churn_analysis_results.xlsx` — exported RFM summary, snapshot outcome rates, model metrics, priority customers, and data-quality report.
-- `high_priority_at_risk_customers_improved.xlsx` — up to 50 currently active customers ranked by the model's risk score.
+- `high_priority_at_risk_customers.xlsx` — up to 50 currently active customers ranked by the model's risk score.
 
 Keep the notebook and source workbook in the same directory, or update `DATA_PATH` near the beginning of the notebook.
 
