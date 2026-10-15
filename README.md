@@ -4,9 +4,9 @@ An exploratory retail analytics project that uses customer-level purchasing beha
 
 ## Project contents
 
-- `MainAnalysis(1).ipynb` — data cleaning, exploratory analysis, customer feature engineering, churn modelling, visualisations, and export.
-- `Online Retail(1).xlsx` — transaction-level retail data used by the notebook.
-- `high_priority_at_risk_customers(1).xlsx` — an example/exported list of customers flagged for review by the analysis.
+- `MainAnalysis.ipynb` — data cleaning, exploratory analysis, customer feature engineering, churn modelling, visualisations, and export.
+- `Online Retail.xlsx` — transaction-level retail data used by the notebook.
+- `high_priority_at_risk_customers.xlsx` — an example/exported list of customers flagged for review by the analysis.
 - `README.md` — project overview and instructions.
 
 > Keep the dataset and notebook in the same directory, or update the input path in the notebook to match your setup.
