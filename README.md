@@ -112,4 +112,3 @@ The exported customer list includes:
 - `churn_probability`
 
 
-No license or data-source attribution is specified in the files provided with this project. Add the applicable dataset citation and license terms before redistributing the data or repository.
